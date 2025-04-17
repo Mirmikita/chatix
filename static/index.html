@@ -73,11 +73,13 @@
     }
 
     .message {
-      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin: 8px 0;
+      padding: 10px 12px;
       border-radius: 20px;
-      max-width: 75%;
-      line-height: 1.5;
+      max-width: 90%;
       word-wrap: break-word;
       animation: fadeIn 0.3s ease;
     }
@@ -85,13 +87,28 @@
     .my-message {
       background: #ff4040;
       align-self: flex-end;
-      color: #fff;
+      color: white;
+      flex-direction: row-reverse;
     }
 
     .other-message {
       background: #222;
       align-self: flex-start;
       color: #ddd;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #ff4040;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 16px;
+      color: white;
+      flex-shrink: 0;
     }
 
     #messageInput {
@@ -108,8 +125,9 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    @media (max-width: 600px) {
-      body { padding: 20px; }
+    #back-button {
+      background: #444;
+      margin-bottom: 15px;
     }
   </style>
 </head>
@@ -122,6 +140,7 @@
   </div>
 
   <div id="chat" style="display:none;">
+    <button id="back-button" onclick="disconnect()">← Назад</button>
     <h2 id="room-title"></h2>
     <div id="messages"></div>
     <input type="text" id="messageInput" placeholder="Введите сообщение">
@@ -158,23 +177,43 @@
 
       ws.onmessage = (event) => {
         const messages = document.getElementById('messages');
-        const message = document.createElement('div');
-        message.classList.add('message');
+        const msgDiv = document.createElement('div');
+        msgDiv.classList.add('message');
 
         if (event.data.includes(username + ':')) {
-          message.classList.add('my-message');
+          msgDiv.classList.add('my-message');
         } else {
-          message.classList.add('other-message');
+          msgDiv.classList.add('other-message');
         }
 
-        message.textContent = event.data;
-        messages.appendChild(message);
+        const sender = event.data.split('] ')[1]?.split(':')[0] || "А";
+        const avatar = document.createElement('div');
+        avatar.classList.add('avatar');
+        avatar.textContent = sender.trim()[0].toUpperCase();
+
+        const text = document.createElement('div');
+        text.textContent = event.data;
+
+        msgDiv.appendChild(avatar);
+        msgDiv.appendChild(text);
+        messages.appendChild(msgDiv);
         messages.scrollTop = messages.scrollHeight;
       };
 
       ws.onerror = (error) => {
         console.error('WebSocket error:', error);
       };
+    }
+
+    function disconnect() {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+      document.getElementById('chat').style.display = 'none';
+      document.getElementById('login').style.display = 'block';
+      document.getElementById('messages').innerHTML = '';
+      document.getElementById('username').value = '';
+      document.getElementById('room').value = '';
     }
 
     function sendMessage() {
