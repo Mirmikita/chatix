@@ -1,63 +1,70 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="ru" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Chatix</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #111;
+      --fg: #eee;
+      --panel: #1a1a1a;
+      --input: #222;
+      --accent: #ff4040;
+      --message-bg: #2a2a2a;
+    }
+
+    [data-theme="light"] {
+      --bg: #f2f2f2;
+      --fg: #222;
+      --panel: #fff;
+      --input: #f0f0f0;
+      --accent: #d42a2a;
+      --message-bg: #e5e5e5;
+    }
 
     body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #111;
-      color: #eee;
-      min-height: 100vh;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Segoe UI', sans-serif;
       display: flex;
       justify-content: center;
       padding: 20px;
+      min-height: 100vh;
     }
 
     #login, #chat {
-      background: #1a1a1a;
-      border: 1px solid #333;
+      background: var(--panel);
       border-radius: 12px;
       padding: 30px;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
       box-shadow: 0 0 20px rgba(255, 0, 0, 0.2);
     }
 
-    h1, h2 {
-      color: #ff4040;
-      margin-bottom: 20px;
-      text-align: center;
-    }
-
-    input[type="text"] {
+    input[type="text"], input[type="file"] {
       width: 100%;
-      padding: 12px;
+      padding: 10px;
       margin: 10px 0;
-      border: 1px solid #444;
       border-radius: 8px;
-      background: #222;
-      color: #eee;
+      border: 1px solid #444;
+      background: var(--input);
+      color: var(--fg);
     }
 
     button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      background: #ff4040;
+      background: var(--accent);
       color: white;
       border: none;
+      padding: 10px 15px;
       border-radius: 8px;
-      font-size: 16px;
       cursor: pointer;
-      transition: background 0.3s ease;
+      margin: 5px 0;
     }
 
-    button:hover {
-      background: #e63636;
+    h1, h2 {
+      text-align: center;
+      color: var(--accent);
     }
 
     #chat-area {
@@ -67,13 +74,12 @@
     }
 
     #messages {
-      flex-grow: 1;
+      flex: 1;
       height: 500px;
-      background: #0d0d0d;
-      border: 1px solid #333;
+      background: var(--message-bg);
       border-radius: 8px;
       overflow-y: auto;
-      padding: 20px;
+      padding: 15px;
       display: flex;
       flex-direction: column;
     }
@@ -82,113 +88,117 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      margin: 8px 0;
-      padding: 10px 12px;
+      margin-bottom: 10px;
+      padding: 10px;
       border-radius: 20px;
       max-width: 90%;
-      word-wrap: break-word;
-      animation: fadeIn 0.3s ease;
     }
 
     .my-message {
-      background: #ff4040;
-      align-self: flex-end;
+      background: var(--accent);
       color: white;
+      align-self: flex-end;
       flex-direction: row-reverse;
     }
 
     .other-message {
-      background: #222;
+      background: var(--input);
+      color: var(--fg);
       align-self: flex-start;
-      color: #ddd;
     }
 
     .avatar {
       width: 32px;
       height: 32px;
       border-radius: 50%;
-      background: #ff4040;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 16px;
+      background: var(--accent);
       color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
       flex-shrink: 0;
+      overflow: hidden;
     }
 
-    #messageInput {
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #222;
-      color: white;
+    .avatar img {
       width: 100%;
-      margin-top: 10px;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
     }
 
     .sidebar {
-      width: 180px;
-      flex-shrink: 0;
-      background: #222;
-      border: 1px solid #333;
+      width: 220px;
+      background: var(--input);
       border-radius: 8px;
       padding: 15px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
     }
 
-    .profile-avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      background: #ff4040;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 20px;
+    .sidebar h3 {
+      margin-bottom: 10px;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
+    .user-list {
+      font-size: 14px;
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .user-list li {
+      margin-bottom: 6px;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
     }
 
     @media (max-width: 768px) {
       #chat-area {
         flex-direction: column;
       }
+
       .sidebar {
         width: 100%;
-        flex-direction: row;
-        justify-content: space-between;
       }
     }
   </style>
 </head>
 <body>
   <div id="login">
-    <h1>Вход в чат</h1>
-    <input type="text" id="username" placeholder="Ваше имя">
-    <input type="text" id="room" placeholder="Название комнаты">
-    <button onclick="connect()">Подключиться</button>
+    <h1>Вход в Chatix</h1>
+    <input type="text" id="username" placeholder="Ваше имя" />
+
+    <div id="room-input" style="display: none;">
+      <input type="text" id="room" placeholder="Название комнаты" />
+    </div>
+
+    <button onclick="chooseRoom(false)">🔓 Войти в общий чат</button>
+    <button onclick="chooseRoom(true)">🔐 Войти в свою комнату</button>
   </div>
 
   <div id="chat" style="display:none;">
-    <h2 id="room-title"></h2>
+    <div class="toolbar">
+      <h2 id="room-title">Комната</h2>
+      <button onclick="toggleTheme()">🌗 Тема</button>
+    </div>
+
     <div id="chat-area">
       <div id="messages"></div>
+
       <div class="sidebar">
-        <div class="profile-avatar" id="profile-avatar">U</div>
-        <div id="profile-name">@user</div>
+        <div class="avatar" id="profile-avatar">U</div>
+        <input type="file" id="avatarUpload" accept="image/*" />
+        <h3>Участники</h3>
+        <ul class="user-list" id="user-list"></ul>
         <button onclick="disconnect()">Выйти</button>
       </div>
     </div>
-    <input type="text" id="messageInput" placeholder="Введите сообщение">
+
+    <input type="text" id="messageInput" placeholder="Сообщение..." />
     <button onclick="sendMessage()">Отправить</button>
   </div>
 
@@ -196,94 +206,126 @@
     let ws;
     let username;
     let room;
+    let avatarDataURL = null;
 
-    // Восстановление имени из localStorage
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener("DOMContentLoaded", () => {
       const savedName = localStorage.getItem("username");
       if (savedName) document.getElementById("username").value = savedName;
+
+      const savedTheme = localStorage.getItem("theme");
+      if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
     });
 
+    function toggleTheme() {
+      const html = document.documentElement;
+      const newTheme = html.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+    }
+
+    function chooseRoom(custom) {
+      room = custom ? null : "global";
+      document.getElementById("room-input").style.display = custom ? "block" : "none";
+      if (!custom) connect();
+    }
+
     function connect() {
-      username = document.getElementById('username').value.trim() || 'Аноним';
-      room = document.getElementById('room').value.trim() || 'general';
+      username = document.getElementById("username").value.trim() || "Аноним";
+      if (!room) room = document.getElementById("room").value.trim();
+      if (!username || !room) return alert("Введите имя и комнату");
 
-      if (!room || !username) {
-        alert('Введите имя и комнату!');
-        return;
-      }
-
-      // Сохраняем имя
       localStorage.setItem("username", username);
 
-      const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-      ws = new WebSocket(`${protocol}://${window.location.host}/ws/${room}`);
+      const proto = location.protocol === "https:" ? "wss" : "ws";
+      ws = new WebSocket(`${proto}://${location.host}/ws/${room}`);
 
       ws.onopen = () => {
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('chat').style.display = 'block';
-        document.getElementById('room-title').innerText = `Комната: ${room}`;
-        document.getElementById('profile-name').textContent = '@' + username;
-        document.getElementById('profile-avatar').textContent = username[0].toUpperCase();
+        document.getElementById("login").style.display = "none";
+        document.getElementById("chat").style.display = "block";
+        document.getElementById("room-title").textContent = room === "global" ? "Общий чат" : `Комната: ${room}`;
+        document.getElementById("profile-avatar").textContent = username[0].toUpperCase();
+        ws.send(JSON.stringify({ username }));
 
-        const input = document.getElementById('messageInput');
-        input.addEventListener('keypress', (e) => {
-          if (e.key === 'Enter') sendMessage();
+        document.getElementById("messageInput").addEventListener("keypress", e => {
+          if (e.key === "Enter") sendMessage();
         });
       };
 
       ws.onmessage = (event) => {
-        const messages = document.getElementById('messages');
-        const msgDiv = document.createElement('div');
-        msgDiv.classList.add('message');
+        try {
+          const data = JSON.parse(event.data);
+          if (data.users) return updateUserList(data.users);
+        } catch {}
 
-        if (event.data.includes(username + ':')) {
-          msgDiv.classList.add('my-message');
+        const messages = document.getElementById("messages");
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message");
+        const isMine = event.data.includes(`${username}:`);
+        msgDiv.classList.add(isMine ? "my-message" : "other-message");
+
+        const avatar = document.createElement("div");
+        avatar.classList.add("avatar");
+
+        if (avatarDataURL && isMine) {
+          const img = document.createElement("img");
+          img.src = avatarDataURL;
+          avatar.appendChild(img);
         } else {
-          msgDiv.classList.add('other-message');
+          const sender = event.data.split("] ")[1]?.split(":")[0] || "U";
+          avatar.textContent = sender.trim()[0].toUpperCase();
         }
 
-        const sender = event.data.split('] ')[1]?.split(':')[0] || "U";
-        const avatar = document.createElement('div');
-        avatar.classList.add('avatar');
-        avatar.textContent = sender.trim()[0].toUpperCase();
-
-        const text = document.createElement('div');
+        const text = document.createElement("div");
         text.textContent = event.data;
-
         msgDiv.appendChild(avatar);
         msgDiv.appendChild(text);
         messages.appendChild(msgDiv);
         messages.scrollTop = messages.scrollHeight;
       };
 
-      ws.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
+      ws.onerror = console.error;
+    }
+
+    function updateUserList(users) {
+      const ul = document.getElementById("user-list");
+      ul.innerHTML = "";
+      users.forEach(user => {
+        const li = document.createElement("li");
+        li.textContent = user;
+        ul.appendChild(li);
+      });
     }
 
     function disconnect() {
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.close();
-      }
-
-      document.getElementById('chat').style.display = 'none';
-      document.getElementById('login').style.display = 'block';
-      document.getElementById('messages').innerHTML = '';
-      document.getElementById('room').value = '';
+      if (ws) ws.close();
+      document.getElementById("chat").style.display = "none";
+      document.getElementById("login").style.display = "block";
+      document.getElementById("messages").innerHTML = "";
+      document.getElementById("user-list").innerHTML = "";
+      document.getElementById("room").value = "";
+      room = null;
     }
 
     function sendMessage() {
-      const input = document.getElementById('messageInput');
+      const input = document.getElementById("messageInput");
       const text = input.value.trim();
-
-      if (ws && ws.readyState === WebSocket.OPEN && text) {
-        ws.send(JSON.stringify({
-          sender: username,
-          text: text
-        }));
-        input.value = '';
+      if (ws && text) {
+        ws.send(JSON.stringify({ sender: username, text }));
+        input.value = "";
       }
     }
+
+    document.getElementById("avatarUpload").addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        avatarDataURL = reader.result;
+        const avatar = document.getElementById("profile-avatar");
+        avatar.innerHTML = `<img src="${avatarDataURL}" />`;
+      };
+      reader.readAsDataURL(file);
+    });
   </script>
 </body>
 </html>
