@@ -178,6 +178,7 @@
 
     <button onclick="chooseRoom(false)">🔓 Войти в общий чат</button>
     <button onclick="chooseRoom(true)">🔐 Войти в свою комнату</button>
+    <button id="connect-button" style="display: none;" onclick="connect()">Подключиться</button>
   </div>
 
   <div id="chat" style="display:none;">
@@ -214,6 +215,10 @@
 
       const savedTheme = localStorage.getItem("theme");
       if (savedTheme) document.documentElement.setAttribute("data-theme", savedTheme);
+
+      document.getElementById("messageInput").addEventListener("keypress", e => {
+        if (e.key === "Enter") sendMessage();
+      });
     });
 
     function toggleTheme() {
@@ -226,13 +231,14 @@
     function chooseRoom(custom) {
       room = custom ? null : "global";
       document.getElementById("room-input").style.display = custom ? "block" : "none";
+      document.getElementById("connect-button").style.display = custom ? "block" : "none";
       if (!custom) connect();
     }
 
     function connect() {
       username = document.getElementById("username").value.trim() || "Аноним";
-      if (!room) room = document.getElementById("room").value.trim();
-      if (!username || !room) return alert("Введите имя и комнату");
+      if (!room) room = document.getElementById("room").value.trim() || "private-" + Math.random().toString(36).substring(2, 8);
+      if (!username) return alert("Введите имя");
 
       localStorage.setItem("username", username);
 
@@ -245,17 +251,18 @@
         document.getElementById("room-title").textContent = room === "global" ? "Общий чат" : `Комната: ${room}`;
         document.getElementById("profile-avatar").textContent = username[0].toUpperCase();
         ws.send(JSON.stringify({ username }));
-
-        document.getElementById("messageInput").addEventListener("keypress", e => {
-          if (e.key === "Enter") sendMessage();
-        });
       };
 
       ws.onmessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          if (data.users) return updateUserList(data.users);
-        } catch {}
+          if (data.users) {
+            updateUserList(data.users);
+            return;
+          }
+        } catch (e) {
+          console.error("Ошибка парсинга JSON:", e);
+        }
 
         const messages = document.getElementById("messages");
         const msgDiv = document.createElement("div");
@@ -283,7 +290,14 @@
         messages.scrollTop = messages.scrollHeight;
       };
 
-      ws.onerror = console.error;
+      ws.onerror = (error) => {
+        console.error("WebSocket error:", error);
+        alert("Ошибка подключения к серверу");
+      };
+
+      ws.onclose = () => {
+        console.log("WebSocket соединение закрыто");
+      };
     }
 
     function updateUserList(users) {
