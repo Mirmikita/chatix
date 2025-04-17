@@ -23,7 +23,7 @@ class ConnectionManager:
         self.usernames: Dict[WebSocket, str] = {}
 
     async def connect(self, websocket: WebSocket, room: str, username: str):
-        await websocket.accept()
+        # Убрали await websocket.accept() - FastAPI делает это автоматически
         self.usernames[websocket] = username
         if room not in self.active_connections:
             self.active_connections[room] = []
@@ -39,22 +39,28 @@ class ConnectionManager:
     async def broadcast(self, message: str, room: str):
         if room in self.active_connections:
             for conn in self.active_connections[room]:
-                await conn.send_text(message)
+                try:
+                    await conn.send_text(message)
+                except:
+                    pass
 
     async def broadcast_users(self, room: str):
         if room in self.active_connections:
             users = [self.usernames[ws] for ws in self.active_connections[room] if ws in self.usernames]
             for conn in self.active_connections[room]:
-                await conn.send_text(json.dumps({"users": users}))
+                try:
+                    await conn.send_text(json.dumps({"users": users}))
+                except:
+                    pass
 
 manager = ConnectionManager()
 
 @app.websocket("/ws/{room}")
 async def websocket_endpoint(websocket: WebSocket, room: str):
-    await websocket.accept()
-    init = await websocket.receive_text()
+    await websocket.accept()  # FastAPI вызывает accept() здесь
+    
     try:
-        data = json.loads(init)
+        data = await websocket.receive_json()
         username = data.get("username", "Аноним")
     except:
         username = "Аноним"
@@ -64,27 +70,31 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
     # История сообщений
     cursor.execute("SELECT * FROM messages WHERE room=? ORDER BY timestamp LIMIT 50", (room,))
     for msg in cursor.fetchall():
-        await websocket.send_text(f"[{msg[4]}] {msg[2]}: {msg[3]}")
+        try:
+            await websocket.send_text(f"[{msg[4]}] {msg[2]}: {msg[3]}")
+        except:
+            pass
 
     try:
         while True:
-            raw = await websocket.receive_text()
-            data = json.loads(raw)
+            try:
+                data = await websocket.receive_json()
+                
+                msg_id = str(uuid.uuid4())
+                timestamp = datetime.now().strftime("%H:%M")
+                cursor.execute("INSERT INTO messages VALUES (?, ?, ?, ?, ?)",
+                            (msg_id, room, data['sender'], data['text'], timestamp))
+                conn.commit()
 
-            msg_id = str(uuid.uuid4())
-            timestamp = datetime.now().strftime("%H:%M")
-            cursor.execute("INSERT INTO messages VALUES (?, ?, ?, ?, ?)",
-                          (msg_id, room, data['sender'], data['text'], timestamp))
-            conn.commit()
-
-            await manager.broadcast(f"[{timestamp}] {data['sender']}: {data['text']}", room)
+                await manager.broadcast(f"[{timestamp}] {data['sender']}: {data['text']}", room)
+            except json.JSONDecodeError:
+                await websocket.send_text("Ошибка: неверный формат сообщения")
+            except KeyError:
+                await websocket.send_text("Ошибка: неверная структура сообщения")
 
     except WebSocketDisconnect:
         manager.disconnect(websocket, room)
         await manager.broadcast_users(room)
-
-    except json.JSONDecodeError:
-        await websocket.send_text("Ошибка: неверный формат сообщения")
 
 # Статика
 static_dir = os.path.join(os.path.dirname(__file__), "static")
