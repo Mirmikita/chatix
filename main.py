@@ -61,6 +61,7 @@ async def websocket_endpoint(websocket: WebSocket, room: str):
 
     await manager.connect(websocket, room, username)
 
+    # История сообщений
     cursor.execute("SELECT * FROM messages WHERE room=? ORDER BY timestamp LIMIT 50", (room,))
     for msg in cursor.fetchall():
         await websocket.send_text(f"[{msg[4]}] {msg[2]}: {msg[3]}")
@@ -95,4 +96,4 @@ def index():
 
 @app.get("/{room}")
 def get_room(room: str):
-    return FileResponse(os
+    return FileResponse(os.path.join(static_dir, "index.html"))
